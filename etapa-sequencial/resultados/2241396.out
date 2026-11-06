@@ -1,0 +1,118 @@
+===== AMBIENTE =====
+data      : 2026-11-06 13:38:20
+job       : 2241396 | partição amd-512 | nó r2n21
+cpu       : AMD EPYC 7713 64-Core Processor
+núcleos   : 1
+gcc       : gcc (GCC) 8.5.0 20210514 (Red Hat 8.5.0-18)
+commit    : sem-git
+===== COMPILAÇÃO =====
+gcc -O3 -Wall -Wextra -o heat_seq heat_seq.c -lm
+gcc -O2 -Wall -Wextra -o compare_grids compare_grids.c -lm
+===== VALIDAÇÃO (make test) =====
+=== 1) uniforme: tudo deve continuar a 100 ===
+./heat_seq -n 64 -i 500 -c 1
+== heat_seq ==
+N               = 64 (0.00 milhões de pontos, 0.0 MB por buffer, 2 buffers)
+caso            = 1
+iteracoes       = 500
+tempo_loop_s    = 0.000873
+mpontos_por_s   = 2200.6
+soma            = 4.096000000000000e+05
+norma_L2        = 6.400000000000000e+03
+minimo          = 1.000000000000000e+02
+maximo          = 1.000000000000000e+02
+centro          = 1.000000000000000e+02
+perto_da_borda  = 1.000000000000000e+02
+residuo         = 0.000000e+00
+CSV,seq,64,500,1,1,0.000873
+-- validação --
+princípio do máximo (0 <= T <= 100)  : OK
+ponto fixo: erro máx. = 0.000e+00          : OK
+VALIDACAO: OK
+=== 2) linear: ponto fixo, a grade nao pode mudar ===
+./heat_seq -n 64 -i 500 -c 2
+== heat_seq ==
+N               = 64 (0.00 milhões de pontos, 0.0 MB por buffer, 2 buffers)
+caso            = 2
+iteracoes       = 500
+tempo_loop_s    = 0.000875
+mpontos_por_s   = 2196.9
+soma            = 2.048000000000000e+05
+norma_L2        = 3.492348232739456e+03
+minimo          = 0.000000000000000e+00
+maximo          = 1.000000000000000e+02
+centro          = 4.999999999999999e+01
+perto_da_borda  = 1.798941798941799e+01
+residuo         = 2.842171e-14
+CSV,seq,64,500,1,1,0.000875
+-- validação --
+princípio do máximo (0 <= T <= 100)  : OK
+ponto fixo: erro máx. = 2.842e-14          : OK
+VALIDACAO: OK
+=== 3) placa: convergir e comparar com a solucao analitica ===
+./heat_seq -n 65 -i 500000 -t 1e-10 -a
+== heat_seq ==
+N               = 65 (0.00 milhões de pontos, 0.0 MB por buffer, 2 buffers)
+caso            = 0
+iteracoes       = 16600
+tempo_loop_s    = 0.029126
+mpontos_por_s   = 2262.0
+soma            = 1.057249998624712e+05
+norma_L2        = 2.407131179189603e+03
+minimo          = 0.000000000000000e+00
+maximo          = 1.000000000000000e+02
+centro          = 2.499999991712032e+01
+perto_da_borda  = 9.685158665508624e+01
+residuo         = 9.989165e-11
+CSV,seq,65,16600,1,1,0.029126
+-- validação --
+princípio do máximo (0 <= T <= 100)  : OK
+convergiu (resíduo < tol)            : OK
+centro = 24.99999992 (esperado 25)  erro = 8.29e-08 : OK
+vs analítica: RMS = 3.365e-02  máx = 7.180e-01 (°C) : OK
+VALIDACAO: OK
+=== 4) determinismo: duas execucoes do caso 3 (ruido) geram grades identicas ===
+    (mesmo procedimento para comparar a versao sequencial com as paralelas)
+./heat_seq -n 128 -i 300 -c 3 -o ruido_a.bin > /dev/null
+./heat_seq -n 128 -i 300 -c 3 -o ruido_b.bin > /dev/null
+./compare_grids ruido_a.bin ruido_b.bin 0
+elementos            : 16384 (grade 128 x 128)
+diferentes (bit)     : 0
+NaN                  : 0
+maior |a-b|          : 0.000e+00
+RMS da diferença     : 0.000e+00
+RESULTADO: OK (tol = 0.0e+00)
+===== BENCHMARK (ITER=100, REPS=5) =====
+N=4096 rep=1: seq,4096,100,1,1,1.218460
+N=4096 rep=2: seq,4096,100,1,1,1.223801
+N=4096 rep=3: seq,4096,100,1,1,1.212112
+N=4096 rep=4: seq,4096,100,1,1,1.226527
+N=4096 rep=5: seq,4096,100,1,1,1.224620
+N=5793 rep=1: seq,5793,100,1,1,2.319850
+N=5793 rep=2: seq,5793,100,1,1,2.319382
+N=5793 rep=3: seq,5793,100,1,1,2.325145
+N=5793 rep=4: seq,5793,100,1,1,2.315369
+N=5793 rep=5: seq,5793,100,1,1,2.322477
+N=8192 rep=1: seq,8192,100,1,1,4.732842
+N=8192 rep=2: seq,8192,100,1,1,4.742258
+N=8192 rep=3: seq,8192,100,1,1,4.705302
+N=8192 rep=4: seq,8192,100,1,1,4.697499
+N=8192 rep=5: seq,8192,100,1,1,4.721389
+N=11585 rep=1: seq,11585,100,1,1,9.644277
+N=11585 rep=2: seq,11585,100,1,1,9.658060
+N=11585 rep=3: seq,11585,100,1,1,9.599890
+N=11585 rep=4: seq,11585,100,1,1,9.631751
+N=11585 rep=5: seq,11585,100,1,1,9.620502
+N=16384 rep=1: seq,16384,100,1,1,20.716199
+N=16384 rep=2: seq,16384,100,1,1,20.543153
+N=16384 rep=3: seq,16384,100,1,1,20.650063
+N=16384 rep=4: seq,16384,100,1,1,20.670336
+N=16384 rep=5: seq,16384,100,1,1,20.609173
+===== RESUMO =====
+N       repeticoes   minimo      media       maximo
+4096    5            1.212112    1.221104    1.226527   
+5793    5            2.315369    2.320445    2.325145   
+8192    5            4.697499    4.719858    4.742258   
+11585   5            9.599890    9.630896    9.658060   
+16384   5            20.543153   20.637785   20.716199  
+Resultados em resultados/ (resultados.csv e assinatura_seq_2241396.txt)

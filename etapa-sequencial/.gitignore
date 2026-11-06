@@ -1,0 +1,12 @@
+# Executáveis
+heat_seq
+compare_grids
+
+# Arquivos binários
+*.bin
+
+# Arquivos objeto
+*.o
+
+# Arquivos temporários
+*.tmp
