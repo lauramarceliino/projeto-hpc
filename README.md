@@ -60,8 +60,17 @@ projeto-hpc/
 │       ├── resultados.csv
 │       └── assinaturas e logs
 │
-├── etapa-hibrida/             # Planejada
-│   └── MPI + OpenMP
+├── etapa-hibrida/
+│   ├── Makefile
+│   ├── heat_hib.c
+│   ├── run_hib.slurm
+│   ├── analise.py
+│   ├── graficos.py
+│   ├── graficos/
+│   └── resultados/
+│       ├── resultados.csv
+│       ├── detalhes.csv
+│       └── tabelas.md
 │
 ├── etapa-openmp-target/       # Planejada
 │   └── OpenMP Target
@@ -90,11 +99,16 @@ Características:
 
 ### 6.2. Versão híbrida — MPI + OpenMP
 
-Implementação planejada para combinar paralelismo distribuído entre processos MPI e paralelismo por threads utilizando OpenMP.
+Combina paralelismo distribuído entre processos MPI e paralelismo por threads OpenMP.
 
-A matriz será dividida entre os processos, com comunicação das regiões de fronteira (*halo exchange*) a cada iteração.
+**Status:** Concluída (experimentos executados no NPAD).
 
-**Status:** Planejada.
+Características:
+- Decomposição 1D por blocos de linhas; cada processo gera apenas as suas linhas.
+- Troca de halo (1 linha acima e 1 abaixo) com `MPI_Isend`/`MPI_Irecv`, sobreposta ao cálculo das linhas internas (`-b` usa troca bloqueante).
+- OpenMP dentro de cada processo (`MPI_THREAD_FUNNELED`), com inicialização paralela (*first touch*).
+- Grade final e assinatura idênticas bit a bit às do sequencial, para qualquer combinação de processos e threads.
+- Reutiliza `etapa-sequencial/heat_common.h`.
 
 ### 6.3. Versão GPU — OpenMP Target
 
@@ -160,6 +174,22 @@ Consultar o log:
 tail -f <ID>.out
 ```
 
+### Versão híbrida (MPI + OpenMP)
+
+```bash
+cd ~/projeto-hpc/etapa-hibrida
+module load libraries/openmpi/4.1.8-gnu8
+make
+make test                                  # compara com o sequencial, bit a bit
+sbatch run_hib.slurm                       # escala forte, afinidade compacta
+AFFINITY=spread sbatch run_hib.slurm      # processos/threads espalhados pelos domínios NUMA
+PAIRS="4096:1x1 5793:2x1 8192:4x1" CSV=resultados/fraca.csv sbatch run_hib.slurm   # escala fraca
+python3 analise.py > resultados/tabelas.md
+python3 graficos.py                        # requer matplotlib
+```
+
+No NPAD, o `srun` precisa de `--mpi=pmix` (já incluído no script).
+
 ## 9. Experimentos e avaliação de desempenho
 
 Os experimentos buscam avaliar o comportamento das implementações considerando diferentes dimensões de matrizes e configurações de processamento.
@@ -197,7 +227,53 @@ etapa-sequencial/resultados/resultados.csv
 
 O baseline sequencial será utilizado como referência para as análises comparativas das implementações paralelas.
 
-## 11. Próximas etapas
+## 11. Resultados — Versão híbrida (MPI + OpenMP)
+
+Executada no NPAD, partição `amd-512` (2× AMD EPYC 7713, 128 núcleos, 8 domínios NUMA de 16 núcleos), OpenMPI 4.1.8 com gcc 8.5 (mesmo compilador do baseline), 100 iterações, 5 repetições por configuração (mediana). Todas as execuções reproduziram a assinatura do sequencial.
+
+### Escala forte
+
+| N | Sequencial (s) | 1×8 (s) | Speedup | 1×128 (s) | Speedup | 8×16 (s) | Speedup |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 4096 | 1,224 | 0,111 | 11,0× | 0,033 | 37,0× | 0,041 | 30,2× |
+| 5793 | 2,320 | 0,331 | 7,0× | 0,053 | 43,9× | 0,069 | 33,5× |
+| 8192 | 4,721 | 0,595 | 7,9× | 0,307 | 15,4× | 0,313 | 15,1× |
+| 11585 | 9,632 | 1,203 | 8,0× | 0,880 | 10,9× | 0,883 | 10,9× |
+| 16384 | 20,650 | 2,581 | 8,0× | 2,033 | 10,2× | 2,051 | 10,1× |
+
+(P×T = processos MPI × threads OpenMP, afinidade espalhada.)
+
+![Escala forte](etapa-hibrida/graficos/1_speedup_forte.png)
+
+- O stencil é **limitado por banda de memória**: cada ponto faz 4 somas e 1 multiplicação, mas lê e escreve 5 `double`.
+- O speedup é quase linear até 8 núcleos (um por domínio NUMA) e satura em **~10×** para N ≥ 11585: é o limite de banda de memória do nó.
+- N = 4096 e 5793 passam desse limite (até 44×) porque as duas grades cabem nos 512 MB de L3 somados do nó.
+
+### Afinidade
+
+![Afinidade](etapa-hibrida/graficos/2_afinidade.png)
+
+- Com afinidade compacta, de 1 a 16 núcleos ficam no **mesmo domínio NUMA**, e um núcleo sozinho já quase satura a banda dele: o ganho é de só ~1,2×.
+- Espalhando processos e threads pelos domínios, 8 núcleos rendem 8×. Neste problema, **onde** os núcleos estão importa mais do que **quantos** são.
+
+### Escala fraca
+
+![Escala fraca](etapa-hibrida/graficos/3_escala_fraca.png)
+
+- N cresce com √núcleos, mantendo o trabalho por núcleo constante (até N = 46341 em 128 núcleos).
+- A eficiência fica em 90–100% até 8 núcleos e cai pela metade a cada dobra a partir daí: é o mesmo limite de banda.
+
+### Comunicação MPI e balanceamento de carga
+
+![Comunicação](etapa-hibrida/graficos/4_comunicacao.png)
+
+- Em 128 núcleos, todas as divisões P×T dão o mesmo tempo (~2,05 s para N = 16384), mas a fração gasta em comunicação cresce com o número de processos: **1,8% em 8×16 contra 19,1% em 128×1**.
+- A divisão em blocos dá no máximo 1 linha de diferença entre processos. O desbalanceamento medido (cálculo máximo ÷ médio) fica em ~1,00 com poucos processos e sobe para 1,2 em 128×1, por disputa de memória, não por divisão desigual.
+- A troca de halo sobreposta ao cálculo e a bloqueante ficaram dentro de ±2%: as mensagens são pequenas (1 linha) e, dentro de um nó, não há tempo de comunicação para esconder.
+
+Dados completos: `etapa-hibrida/resultados/` (`resultados.csv`, `detalhes.csv` e `tabelas.md`).
+
+## 12. Próximas etapas
 
 1. Consolidar e documentar o baseline sequencial.
 2. Dividir o grupo em duplas para desenvolvimento das implementações paralelas.
@@ -209,7 +285,7 @@ O baseline sequencial será utilizado como referência para as análises compara
 8. Gerar gráficos comparativos de tempo, speedup, eficiência e escalabilidade.
 9. Elaborar a análise final dos resultados.
 
-## 12. Equipe
+## 13. Equipe
 
 **Integrantes:**  
 - GILDO CORDEIRO DUARTE 
