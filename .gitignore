@@ -1,6 +1,7 @@
 # Executáveis
 heat_seq
 compare_grids
+heat_hib
 
 # Arquivos compilados
 *.o
@@ -10,3 +11,6 @@ compare_grids
 
 # Arquivos temporários
 *.tmp
+
+# Python
+__pycache__/
