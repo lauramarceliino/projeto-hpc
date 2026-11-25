@@ -14,3 +14,8 @@ heat_hib
 
 # Python
 __pycache__/
+
+# OpenMP Target: executáveis e saídas temporárias do Slurm
+etapa-openmp-target/build/
+etapa-openmp-target/*.out
+etapa-openmp-target/*.err
