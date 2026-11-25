@@ -1,0 +1,18 @@
+rm -f build/heat_target build/heat_seq build/compare_grids
+rm -f build/*.bin
+rmdir build 2>/dev/null || true
+mkdir -p build
+nvc -c11 -O2 -Kieee -mp=gpu -gpu=ccnative,mem:separate,nofma -Minfo=mp -o build/heat_target heat_target.c -lm
+main:
+    247, #omp target
+        247, Generating "nvkernel_main_F1L247_2" GPU kernel
+    247, Generating map(from:execucao_inicial) 
+heat_evolui_device:
+     76, #omp target teams distribute parallel for
+         76, Generating "nvkernel_heat_evolui_device_F1L76_4" GPU kernel
+         78, Loop parallelized across teams and threads(128), schedule(static)
+     86, #omp target teams distribute parallel for
+         86, Generating "nvkernel_heat_evolui_device_F1L86_6" GPU kernel
+         88, Loop parallelized across teams and threads(128), schedule(static)
+nvc -c11 -O2 -Kieee -I../etapa-sequencial -o build/heat_seq ../etapa-sequencial/heat_seq.c -lm
+nvc -O2 -Wall -Wextra -o build/compare_grids ../etapa-sequencial/compare_grids.c -lm
