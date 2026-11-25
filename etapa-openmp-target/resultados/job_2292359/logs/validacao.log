@@ -1,0 +1,11 @@
+=== offload real e casos fixos ===
+VALIDACAO: OK
+VALIDACAO: OK
+=== comparação grade irregular/ruído ===
+elementos            : 2209 (grade 47 x 47)
+diferentes (bit)     : 0
+NaN                  : 0
+maior |a-b|          : 0.000e+00
+RMS da diferença     : 0.000e+00
+RESULTADO: OK (tol = 0.0e+00)
+TESTES COM DISPOSITIVO: OK

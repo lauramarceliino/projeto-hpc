@@ -1,0 +1,45 @@
+===== SEQUENCIAL N=5793 =====
+== heat_seq ==
+N               = 5793 (33.56 milhões de pontos, 268.5 MB por buffer, 2 buffers)
+caso            = 0
+iteracoes       = 100
+tempo_loop_s    = 5.782211
+mpontos_por_s   = 580.0
+soma            = 3.566548369788543e+06
+norma_L2        = 1.489156058408271e+04
+minimo          = 0.000000000000000e+00
+maximo          = 1.000000000000000e+02
+centro          = 0.000000000000000e+00
+perto_da_borda  = 8.878609477142520e+01
+residuo         = 2.397062e-01
+CSV,seq,5793,100,1,1,5.782211
+-- validação --
+princípio do máximo (0 <= T <= 100)  : OK
+VALIDACAO: OK
+===== OPENMP TARGET N=5793 =====
+dispositivos_target = 1
+offload_real        = 1
+== heat_target ==
+N               = 5793
+caso            = 0
+iteracoes       = 100
+tempo_total_s   = 0.172990609
+tempo_kernel_s  = 0.071837576
+tempo_verif_s   = 0.000000000
+tempo_entrada_s = 0.065285010
+tempo_saida_s   = 0.035854055
+mpontos_por_s   = 19385.839
+soma            = 3.566548369788543e+06
+norma_L2        = 1.489156058408271e+04
+minimo          = 0.000000000000000e+00
+maximo          = 1.000000000000000e+02
+centro          = 0.000000000000000e+00
+perto_da_borda  = 8.878609477142520e+01
+residuo         = 2.397062e-01
+bytes_h2d_estimados = 536941984
+bytes_d2h_estimados = 268471192
+CSV,target,5793,100,1,1,0.172990609
+DET,target,5793,100,0.172990609,0.071837576,0.000000000,0.065285010,0.035854055,536941984,268471192,1,1
+todos os valores finitos              : OK
+princípio do máximo (0 <= T <= 100): OK
+VALIDACAO: OK

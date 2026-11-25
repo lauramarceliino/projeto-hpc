@@ -1,0 +1,10 @@
+302b018fe1d526fd98931cdfdcc5b976173215f91d7b71334960ec030607da01  /home/dfdlsilva/projeto-hpc-openmp-target-20261125/etapa-openmp-target/resultados/job_2292359/source/etapa-openmp-target/Makefile
+dae5840e7f33d2bb14d06090c3224d5b5eeef732321dcd7495c253e99959c29d  /home/dfdlsilva/projeto-hpc-openmp-target-20261125/etapa-openmp-target/resultados/job_2292359/source/etapa-openmp-target/PLANO.md
+718f17cbf28de8ff2bfb7974c153c7c5025badf3fd2e81d656658b859727caf4  /home/dfdlsilva/projeto-hpc-openmp-target-20261125/etapa-openmp-target/resultados/job_2292359/source/etapa-openmp-target/README.md
+2f48411f8d31e066062d6350fd52b37597127907611674d78c857fd6ae736232  /home/dfdlsilva/projeto-hpc-openmp-target-20261125/etapa-openmp-target/resultados/job_2292359/source/etapa-openmp-target/analise.py
+96e764bbf276d481e31b162f52adff3a222ca7aef4a29c3f8ff57d936b01ee8c  /home/dfdlsilva/projeto-hpc-openmp-target-20261125/etapa-openmp-target/resultados/job_2292359/source/etapa-openmp-target/graficos.py
+80fb42987d443a0ba216ef1f9cce8201c0006ead76f1a23db5388dff5f64f7db  /home/dfdlsilva/projeto-hpc-openmp-target-20261125/etapa-openmp-target/resultados/job_2292359/source/etapa-openmp-target/heat_target.c
+d12da3e91e4acda81eef9917feed4e87496cae3dd7e9eeb4ad1a0ea18cf92ed4  /home/dfdlsilva/projeto-hpc-openmp-target-20261125/etapa-openmp-target/resultados/job_2292359/source/etapa-openmp-target/run_target.slurm
+babc99d925418d9f92a95ed5f831841fe325abd2076fdc1c693a47e716cb7e47  /home/dfdlsilva/projeto-hpc-openmp-target-20261125/etapa-openmp-target/resultados/job_2292359/source/etapa-sequencial/compare_grids.c
+2ed0e37de166d32a0e4c7fb1723822c9485cfacba130a959e488e4b65f6eb96b  /home/dfdlsilva/projeto-hpc-openmp-target-20261125/etapa-openmp-target/resultados/job_2292359/source/etapa-sequencial/heat_common.h
+6ce27a813f999dafd25b876ef58442577702f598b2fa858516b649a92e41b9aa  /home/dfdlsilva/projeto-hpc-openmp-target-20261125/etapa-openmp-target/resultados/job_2292359/source/etapa-sequencial/heat_seq.c
