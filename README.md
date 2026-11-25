@@ -72,8 +72,16 @@ projeto-hpc/
 │       ├── detalhes.csv
 │       └── tabelas.md
 │
-├── etapa-openmp-target/       # Planejada
-│   └── OpenMP Target
+├── etapa-openmp-target/       # C/OpenMP Target em GPU
+│   ├── heat_target.c
+│   ├── Makefile
+│   ├── run_target.slurm
+│   ├── analise.py
+│   ├── graficos.py
+│   └── resultados/
+│       ├── job_2292359/       # NPAD: V100, 5 tamanhos × 5 repetições
+│       ├── tabelas.md
+│       └── graficos/
 │
 ├── etapa-cuda/                # Planejada
 │   └── CUDA
@@ -112,9 +120,15 @@ Características:
 
 ### 6.3. Versão GPU — OpenMP Target
 
-Implementação planejada para explorar o processamento em GPU por meio das diretivas de offloading do OpenMP.
+Implementação em C11 do stencil Jacobi com OpenMP Target, compilada com NVHPC e executada em uma GPU Tesla V100 no NPAD.
 
-**Status:** Planejada.
+**Status:** Implementada, validada no dispositivo e medida no NPAD (job `2292359`).
+
+Características:
+- Mantém os dois buffers residentes na GPU e alterna origem/destino por paridade das iterações.
+- Confirma offload real em cada kernel e compara a grade irregular com o sequencial bit a bit.
+- Mede tempo total, kernels, entrada e saída, com cinco repetições por tamanho.
+- Registra os CSVs brutos, logs de compilação/validação e snapshot das fontes em `etapa-openmp-target/resultados/job_2292359/`.
 
 ### 6.4. Versão GPU — CUDA
 
@@ -273,19 +287,38 @@ Executada no NPAD, partição `amd-512` (2× AMD EPYC 7713, 128 núcleos, 8 dom�
 
 Dados completos: `etapa-hibrida/resultados/` (`resultados.csv`, `detalhes.csv` e `tabelas.md`).
 
-## 12. Próximas etapas
+## 12. Resultados — OpenMP Target GPU
 
-1. Consolidar e documentar o baseline sequencial.
-2. Dividir o grupo em duplas para desenvolvimento das implementações paralelas.
-3. Implementar a versão híbrida MPI + OpenMP.
-4. Implementar a versão OpenMP Target.
-5. Implementar a versão CUDA.
-6. Executar os experimentos variando dimensões, processos e threads.
-7. Coletar e organizar os resultados.
-8. Gerar gráficos comparativos de tempo, speedup, eficiência e escalabilidade.
-9. Elaborar a análise final dos resultados.
+Campanha executada na partição `gpu-8-v100`, nó `gpunode1`, GPU Tesla V100-SXM2-16GB, com NVHPC 24.11. Foram usadas 100 iterações por execução e cinco repetições por tamanho. O speedup compara medianas do OpenMP Target e do sequencial medidos no mesmo job e inclui os custos de entrada e saída da GPU.
 
-## 13. Equipe
+| N | Sequencial mediano (s) | OpenMP Target total mediano (s) | Speedup | Kernel (s) | Entrada + saída (s) |
+|---:|---:|---:|---:|---:|---:|
+| 4096 | 2,884384 | 0,088550 | 32,57× | 0,037265 | 0,051331 |
+| 5793 | 5,776120 | 0,172696 | 33,45× | 0,071813 | 0,100980 |
+| 8192 | 12,272934 | 0,346749 | 35,39× | 0,145609 | 0,201245 |
+| 11585 | 28,039185 | 0,686744 | 40,83× | 0,283548 | 0,403347 |
+| 16384 | 57,171875 | 1,384493 | 41,29× | 0,580163 | 0,804268 |
+
+O speedup aumenta com o tamanho da grade. O tempo de entrada e saída permanece relevante: em `N=16384`, essas etapas somam cerca de 58% do tempo total, portanto a medição do kernel isolado não representa o tempo percebido pela aplicação. Todos os 25 registros Target confirmam `offload_real=1`, e os testes de dispositivo passaram; a grade `N=47`, com 211 iterações, coincidiu bit a bit com a versão sequencial.
+
+![Tempo total — sequencial e OpenMP Target](etapa-openmp-target/resultados/graficos/1_tempo_total.png)
+
+![Speedup OpenMP Target](etapa-openmp-target/resultados/graficos/2_speedup_target.png)
+
+![Entrada, kernels e saída](etapa-openmp-target/resultados/graficos/3_transferencias.png)
+
+Uma GPU fixa não permite caracterizar escalabilidade fraca clássica nem definir eficiência `S/P` comparável à eficiência por núcleo das versões CPU. Os tamanhos variados mostram o comportamento conforme o volume de entrada. Os gráficos de eficiência forte, escala fraca, comunicação e balanceamento MPI continuam separados como resultados históricos da etapa híbrida, executada em AMD EPYC; não são uma comparação controlada com esta GPU.
+
+Os dados brutos, metadados, fontes e logs estão em `etapa-openmp-target/resultados/job_2292359/`; tabelas reproduzíveis em `etapa-openmp-target/resultados/tabelas.md`.
+
+## 13. Próximas etapas
+
+1. Implementar e validar a versão CUDA.
+2. Executar os experimentos da versão CUDA com os mesmos tamanhos e iterações, registrando hardware e transferências.
+3. Consolidar a análise comparativa das versões sequencial, MPI + OpenMP, OpenMP Target e CUDA.
+4. Elaborar o relatório final de desempenho e escalabilidade.
+
+## 14. Equipe
 
 **Integrantes:**  
 - GILDO CORDEIRO DUARTE 
